@@ -49,7 +49,6 @@ public class AccountController {
     }
 
     //Get all accounts REST API
-
     @GetMapping
     public ResponseEntity<List<AccountDto>> getAllAccounts(){
         List<AccountDto> accountDtos=accountService.getAllAccounts();
