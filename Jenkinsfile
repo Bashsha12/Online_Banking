@@ -1,5 +1,5 @@
 pipeline{
-    agennt any
+    agent any
     tools{
         maven 'MAVEN'
         jdk 'JDK21'
@@ -30,7 +30,7 @@ pipeline{
             post{
                 success{
                     echo 'Build completed successfully!'
-                    artifact archiver: '**/target/*.jar', fingerprint: true
+                    
                 }
                 failure{
                     echo 'Build failed!'
