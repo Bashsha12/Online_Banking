@@ -33,6 +33,7 @@ pipeline{
                 }
                 failure{
                     echo 'Build failed!'
+                    archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                 }
             }
         }
