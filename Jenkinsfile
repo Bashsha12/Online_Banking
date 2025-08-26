@@ -36,6 +36,21 @@ pipeline{
                 }
             }
         }
+        stage("Unit Test"){
+            steps{
+                script{
+                    sh 'mvn test'
+                }
+            }
+            post{
+                success{
+                    echo 'Unit tests executed successfully!'
+                }
+                failure{
+                    echo 'Unit tests failed!'
+                }
+            }
+        }
         stage("Checkstyle Report"){
             steps{
                 script{
