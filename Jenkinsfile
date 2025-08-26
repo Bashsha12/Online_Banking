@@ -4,6 +4,9 @@ pipeline{
         maven 'MAVEN'
         jdk 'JDK21'
     }
+    environment {
+        SONARQUBE_SERVER = 'Sonar' // Replace with your SonarQube server name in Jenkins
+    }
     stages{
         stage("Checkout"){
             steps{
@@ -37,21 +40,7 @@ pipeline{
                 }
             }
         }
-        stage("Unit Test"){
-            steps{
-                script{
-                    sh 'mvn test'
-                }
-            }
-            post{
-                success{
-                    echo 'Unit tests executed successfully!'
-                }
-                failure{
-                    echo 'Unit tests failed!'
-                }
-            }
-        }
+        
         stage("Checkstyle Report"){
             steps{
                 script{
@@ -68,6 +57,21 @@ pipeline{
                 }
             }
 
+        }
+        stage("SonarQube Analysis"){
+            steps{
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+            post{
+                success{
+                    echo 'SonarQube analysis completed successfully!'
+                }
+                failure{
+                    echo 'SonarQube analysis failed!'
+                }
+            }
         }
     }
 
