@@ -33,6 +33,22 @@ pipeline{
                 }
                 failure{
                     echo 'Build failed!'
+                    archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                }
+            }
+        }
+        stage("Unit Test"){
+            steps{
+                script{
+                    sh 'mvn test'
+                }
+            }
+            post{
+                success{
+                    echo 'Unit tests executed successfully!'
+                }
+                failure{
+                    echo 'Unit tests failed!'
                 }
             }
         }
