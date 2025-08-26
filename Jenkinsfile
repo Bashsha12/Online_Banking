@@ -68,8 +68,6 @@ pipeline{
                     -Dsonar.projectVersion=1.0 \
                     -Dsonar.sources=src/ \
                     -Dsonar.java.binaries=target/classes \
-                    -Dsonar.host.url=$SNAR_HOST_URL \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN  \
                     -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
                     -Dsonar.java.coveragePlugin=jacoco \
                     -Dsonar.jacoco.reportPaths=target/jacoco.exec \
@@ -80,6 +78,8 @@ pipeline{
             post{
                 success{
                     echo 'SonarQube analysis completed successfully!'
+                    echo 'Waiting for SonarQube quality gate result...'
+                    
                 }
                 failure{
                     echo 'SonarQube analysis failed!'
