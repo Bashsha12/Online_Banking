@@ -6,6 +6,7 @@ pipeline{
     }
     environment {
         SONARQUBE_SERVER = 'Sonar' // Replace with your SonarQube server name in Jenkins
+        scannerHome = tool name: 'Sonar'
     }
     stages{
         stage("Checkout"){
@@ -61,12 +62,24 @@ pipeline{
         stage("SonarQube Analysis"){
             steps{
                 withSonarQubeEnv("${SONARQUBE_SERVER}") {
-                    sh 'mvn sonar:sonar'
+                    sh '''
+                    ${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=Online_Banking \
+                    -Dsonar.projectName=Online_Banking \
+                    -Dsonar.projectVersion=1.0 \
+                    -Dsonar.sources=src/ \
+                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
+                    -Dsonar.java.coveragePlugin=jacoco \
+                    -Dsonar.jacoco.reportPaths=target/jacoco.exec \
+                    -Dsonar.junit.reportPaths=target/surefire-reports/
+                    '''
                 }
             }
             post{
                 success{
                     echo 'SonarQube analysis completed successfully!'
+                    echo 'Waiting for SonarQube quality gate result...'
+                    
                 }
                 failure{
                     echo 'SonarQube analysis failed!'
