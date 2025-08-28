@@ -1,3 +1,10 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger',
+    'UNSTABLE': 'warning',
+    'ABORTED': '#CCCCCC'
+]
+
 pipeline {
     agent any
     
@@ -69,7 +76,7 @@ pipeline {
                         protocol: 'http',
                         nexusUrl: 'localhost:8081',
                         groupId: 'QA',
-                        version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",,
+                        version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
                         repository: 'Online-Banking',
                         credentialsId: "${NEXUS_CRED}",
                         artifacts: [[
@@ -80,6 +87,30 @@ pipeline {
                         ]]
                     )
                 }
+            }
+        }
+    } // stages end
+
+    post {
+        always {
+            script {
+                def result = currentBuild.currentResult
+                def emoji = ""
+                if (result == "SUCCESS") {
+                    emoji = ":smile:"
+                } else if (result == "FAILURE") {
+                    emoji = ":cry:"
+                } else if (result == "ABORTED") {
+                    emoji = ":no_entry_sign:"
+                } else {
+                    emoji = ":warning:"
+                }
+
+                slackSend(
+                    channel: '#devopscicd',
+                    color: COLOR_MAP[result],
+                    message: "${emoji} *${result}*: Job `${env.JOB_NAME}` build #${env.BUILD_NUMBER} \nCheck console: ${env.BUILD_NAME}"
+                )
             }
         }
     }
