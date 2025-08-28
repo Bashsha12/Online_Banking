@@ -104,7 +104,7 @@ pipeline{
             }
         }
     }
-    }
+    
     stage("Upload Artifacts to Nexus "){
         steps{
             script{
@@ -126,6 +126,15 @@ pipeline{
 
             }
         }
+        post{
+            success{
+                echo 'Artifact uploaded to Nexus successfully!'
+            }
+            failure{
+                echo 'Artifact upload to Nexus failed!'
+            }
+    }
+    }
     }
 
 }
