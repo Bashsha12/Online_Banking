@@ -7,6 +7,7 @@ pipeline{
     environment {
         SONARQUBE_SERVER = 'Sonar' // Replace with your SonarQube server name in Jenkins
         scannerHome = tool name: 'Sonar'
+        Nexus = 'Nexus' // Replace with your Nexus server name in Jenkins
     }
     stages{
         stage("Checkout"){
@@ -89,12 +90,8 @@ pipeline{
         stage("Quality Gate"){
             steps{
                 script{
-                    timeout(time: 20, unit: 'MINUTES') {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                        }
-                    }
+                     timeout(time: 15, unit: 'MINUTES') {
+            waitForQualityGate abortPipeline: true
                 }
             }
             post{
@@ -104,6 +101,29 @@ pipeline{
                 failure{
                     echo 'Quality gate failed!'
                 }
+            }
+        }
+    }
+    }
+    stage("Upload Artifacts to Nexus "){
+        steps{
+            script{
+                nexusArtifactUploader(
+        nexusVersion: 'nexus3',
+        protocol: 'http',
+        nexusUrl: 'localhost:8081',
+        groupId: 'QA',
+        version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
+        repository: 'Online-Banking',
+        credentialsId: 'Nexus',
+        artifacts: [
+            [artifactId: 'Online-Banking',
+             classifier: '',
+             file: 'target/Online_Banking-0.0.1-SNAPSHOT.jar',
+             type: 'jar']
+        ]
+     )
+
             }
         }
     }
