@@ -75,7 +75,7 @@ pipeline {
                         artifacts: [[
                             artifactId: 'Online-Banking',
                             classifier: '',
-                            file: 'target/Online_Banking-0.0.1-SNAPSHOT.jar',
+                            file: 'target/BankingApp-0.0.1-SNAPSHOT.jar',
                             type: 'jar'
                         ]]
                     )
