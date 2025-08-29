@@ -1,15 +1,10 @@
-# ---------- Stage 1: Runtime only ----------
-FROM eclipse-temurin:21-jre-jammy
-
-# Set working directory inside the container
+# Base image with OpenJDK 17
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Copy the JAR file from Jenkins workspace into the container
-# (Assume Jenkins will place the JAR in target/ folder)
-COPY target/BankingApp-0.0.1-SNAPSHOT.jar app.jar
+# The JAR will be specified dynamically via build args
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
 
-# Expose the port Spring Boot runs on
 EXPOSE 8080
-
-# Run the Spring Boot JAR
 ENTRYPOINT ["java", "-jar", "app.jar"]
