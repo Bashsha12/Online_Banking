@@ -1,5 +1,6 @@
-# Base image with OpenJDK 17
-FROM eclipse-temurin:17-jdk-jammy
+# ---------- Stage 1: Runtime only -------
+FROM eclipse-temurin:21-jre-jammy
+# Set working directory inside the container
 WORKDIR /app
 
 # The JAR will be specified dynamically via build args
