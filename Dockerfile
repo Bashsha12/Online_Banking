@@ -1,4 +1,4 @@
-# ---------- Stage 1: Runtime only ----------
+# ---------- Stage 1: Runtime only -------
 FROM eclipse-temurin:21-jre-jammy
 
 # Set working directory inside the container
