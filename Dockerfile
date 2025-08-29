@@ -1,5 +1,5 @@
 # ---------- Stage 1: Runtime only -------
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:17-jre-jammy
 # Set working directory inside the container
 WORKDIR /app
 
@@ -9,3 +9,4 @@ COPY ${JAR_FILE} app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
