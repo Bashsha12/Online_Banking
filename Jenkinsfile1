@@ -92,12 +92,14 @@ pipeline {
         }
     }
 }
-stage("Remover docker image"){
+stage("Remove docker image"){
     agent { label 'docker-node' }
     steps {
+        # Clean up dangling images and the built image
         sh '''
         docker rmi -f $(docker images -f "dangling=true" -q) || true
         docker rmi -f ${DOCKER_IMAGE_NAME}:${BUILD_ID}-${BUILD_TIMESTAMP} || true'''
+
     }      }
 }
     
