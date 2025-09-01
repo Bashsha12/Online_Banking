@@ -1,0 +1,120 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger',
+    'UNSTABLE': 'warning',
+    'ABORTED': '#CCCCCC'
+]
+
+pipeline {
+    agent {
+        label 'master'  // Runs on Jenkins master for non-Docker stages
+    }
+
+    tools {
+        maven 'MAVEN'
+        jdk 'JDK21'
+    }
+
+    environment {
+        SONARQUBE_SERVER = 'Sonar'
+        DOCKERHUB_CRED = 'DOCKERHUB_CRED' // Jenkins credentials ID for Docker Hub
+        BUILD_TIMESTAMP = "${new Date().format('yyyyMMddHHmmss')}"
+        DOCKER_IMAGE_NAME = "online-banking-app"
+        DOCKER_REGISTRY = "bashadockerhubdemo" // Replace with your Docker Hub username
+    }
+
+    stages {
+        stage("Checkout") {
+            steps {
+                git url: 'https://github.com/Bashsha12/Online_Banking.git'
+            }
+        }
+
+        stage("Build JAR") {
+            steps {
+                sh 'mvn clean package -DskipTests=true'
+                stash includes: 'target/*.jar', name: 'app-jar'
+            }
+        }
+
+        stage("Checkstyle Report") {
+            steps {
+                sh 'mvn checkstyle:checkstyle'
+            }
+        }
+
+        stage("SonarQube Analysis") {
+            steps {
+                script {
+                    def scannerHome = tool 'Sonar'
+                    withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=Online_Banking \
+                        -Dsonar.projectName=Online_Banking \
+                        -Dsonar.projectVersion=1.0 \
+                        -Dsonar.sources=src/ \
+                        -Dsonar.java.binaries=target/classes \
+                        -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
+                        -Dsonar.java.coveragePlugin=jacoco \
+                        -Dsonar.jacoco.reportPaths=target/jacoco.exec \
+                        -Dsonar.junit.reportPaths=target/surefire-reports/
+                        """
+                    }
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage("Build & Push Docker Image") {
+    agent { label 'docker-node' }
+    steps {
+        unstash 'app-jar'
+        script {
+            def jarFile = sh(script: "ls target/*.jar | head -n 1", returnStdout: true).trim()
+            def imageTag = "${DOCKER_IMAGE_NAME}:${BUILD_ID}-${BUILD_TIMESTAMP}"
+            def registryImageTag = "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${BUILD_ID}-${BUILD_TIMESTAMP}"
+            withCredentials([usernamePassword(credentialsId: "DOCKERHUB_CRED", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                sh """
+                    docker build --build-arg JAR_FILE=${jarFile} -t ${imageTag} ${WORKSPACE}
+                    docker tag ${imageTag} ${registryImageTag}
+                    echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                    docker push ${registryImageTag}
+                """
+            }
+        }
+    }
+}
+    }
+
+    post {
+        always {
+            script {
+                def result = currentBuild.currentResult
+                def emoji = ""
+                if (result == "SUCCESS") {
+                    emoji = ":smile:"
+                } else if (result == "FAILURE") {
+                    emoji = ":cry:"
+                } else if (result == "ABORTED") {
+                    emoji = ":no_entry_sign:"
+                } else {
+                    emoji = ":warning:"
+                }
+
+                slackSend(
+                    channel: '#devopscicd',
+                    color: COLOR_MAP[result],
+                    message: "${emoji} *${result}*: Job `${env.JOB_NAME}` build #${env.BUILD_NUMBER} \nCheck console: ${env.BUILD_NAME}"
+                )
+            }
+        }
+    }
+}
