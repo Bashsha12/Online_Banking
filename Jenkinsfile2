@@ -1,0 +1,31 @@
+pipeline{
+    agent any
+    tools{
+        maven 'MAVEN'
+        jdk 'JAVA17'
+    }
+    stages{
+         stage("Checkout Stage"){
+            steps{
+            script{
+                git url: 'https://github.com/Bashsha12/Online_Banking.git'
+            }
+            }
+        }
+        stage("Build Package"){
+            steps{
+            script{
+                sh 'mvn clean package -DskipTests=true'
+            }
+            }
+        }
+        stage("Checkstyle Report"){
+            steps{
+            script{
+                sh 'mvn checkstyle:checkstyle'
+            }
+            }
+        }
+       
+    }
+}
